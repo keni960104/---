@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MQTT 賓果連線遊戲</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>🎱 MQTT 賓果連線遊戲</h1>
+  <div id="connStatus" class="conn-status offline">未連線</div>
+</header>
+
+<!-- ============ 畫面 1：登入大廳 ============ -->
+<section id="screen-lobby" class="screen">
+  <div class="card lobby-card">
+    <label>
+      Broker 位址 (跑 mosquitto 那台電腦的區網 IP)
+      <input id="brokerHost" type="text" placeholder="例如 192.168.1.5">
+    </label>
+    <label>
+      WebSocket Port
+      <input id="brokerPort" type="text" value="9001">
+    </label>
+    <label>
+      你的暱稱
+      <input id="nickname" type="text" placeholder="例如 小明" maxlength="12">
+    </label>
+    <label>
+      房間代碼
+      <div class="row">
+        <input id="roomCode" type="text" maxlength="6" placeholder="4 碼房間代碼">
+        <button id="btnRandomRoom" type="button" class="btn-secondary">隨機</button>
+      </div>
+    </label>
+
+    <label class="checkbox-row">
+      <input id="hostAlsoPlays" type="checkbox">
+      建立房間時，主持人也要拿一張卡片下場玩
+    </label>
+
+    <div class="lobby-actions">
+      <button id="btnHost" class="btn-primary">🎙️ 建立房間（當主持人）</button>
+      <button id="btnJoin" class="btn-primary">🎫 加入房間（當玩家）</button>
+    </div>
+    <p class="hint">主持人負責抽號、裁定 BINGO；玩家各自拿一張卡片跟著劃記。<br>
+      所有溝通都透過 MQTT over WebSocket，不會有其他後端伺服器。</p>
+    <p id="lobbyError" class="error-text"></p>
+  </div>
+</section>
+
+<!-- ============ 畫面 2：主持人 ============ -->
+<section id="screen-host" class="screen hidden">
+  <div class="grid host-layout">
+
+    <div class="card">
+      <h2>房間 <span id="hostRoomCode"></span>（主持人）</h2>
+      <p>目前狀態：<span id="hostStateText">等待玩家加入</span></p>
+      <div class="host-controls">
+        <button id="btnStartGame" class="btn-primary">▶️ 開始遊戲</button>
+        <button id="btnDrawNumber" class="btn-primary" disabled>🎱 抽下一個號碼</button>
+        <button id="btnResetGame" class="btn-secondary">🔄 重新開始</button>
+      </div>
+      <div class="last-called" id="hostLastCalled">尚未開始</div>
+      <p id="hostWinnerBanner" class="winner-banner hidden"></p>
+    </div>
+
+    <div class="card">
+      <h3>玩家名單</h3>
+      <ul id="playerList" class="player-list"></ul>
+    </div>
+
+    <div class="card wide">
+      <h3>已叫號碼（<span id="calledCount">0</span> / 75）</h3>
+      <div id="calledBoard" class="called-board"></div>
+    </div>
+
+    <div class="card wide hidden" id="hostOwnCardWrap">
+      <h3>你的卡片（主持人也在玩）</h3>
+      <div id="hostBingoCard" class="bingo-card"></div>
+      <button id="btnHostBingo" class="btn-bingo" disabled>📣 BINGO！</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 畫面 3：玩家 ============ -->
+<section id="screen-player" class="screen hidden">
+  <div class="grid player-layout">
+
+    <div class="card">
+      <h2>房間 <span id="playerRoomCode"></span></h2>
+      <p>目前狀態：<span id="playerStateText">等待主持人開始遊戲</span></p>
+      <div class="last-called" id="playerLastCalled">尚未開始</div>
+      <p id="playerWinnerBanner" class="winner-banner hidden"></p>
+    </div>
+
+    <div class="card">
+      <h3>玩家名單</h3>
+      <ul id="playerListP" class="player-list"></ul>
+    </div>
+
+    <div class="card wide">
+      <h3>你的卡片</h3>
+      <div id="playerBingoCard" class="bingo-card"></div>
+      <button id="btnPlayerBingo" class="btn-bingo" disabled>📣 BINGO！</button>
+    </div>
+
+    <div class="card wide">
+      <h3>已叫號碼（<span id="calledCountP">0</span> / 75）</h3>
+      <div id="calledBoardP" class="called-board"></div>
+    </div>
+  </div>
+</section>
+
+<script src="js/mqtt.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
